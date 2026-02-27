@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>SuperStore · Executive Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --navy:        #0B1628;
+  --navy-mid:    #0F1E38;
+  --navy-light:  #162645;
+  --navy-card:   #1A2D52;
+  --navy-hover:  #1F3560;
+  --border:      rgba(255,255,255,0.07);
+  --border-gold: rgba(212,175,55,0.3);
+
+  --gold:        #D4AF37;
+  --gold-light:  #F0D060;
+  --gold-glow:   rgba(212,175,55,0.15);
+  --green:       #2ECC71;
+  --green-glow:  rgba(46,204,113,0.12);
+  --red:         #E74C3C;
+  --red-glow:    rgba(231,76,60,0.12);
+  --blue:        #4A9EFF;
+  --blue-glow:   rgba(74,158,255,0.12);
+  --purple:      #9B59B6;
+
+  --text:        #F0F4FF;
+  --text2:       #8FA3C8;
+  --text3:       #4A6080;
+  --white:       #FFFFFF;
+
+  /* Spacing scale */
+  --gap-xs: 8px;
+  --gap-sm: 12px;
+  --gap:    18px;
+  --gap-lg: 28px;
+  --gap-xl: 40px;
+
+  /* Radii */
+  --r-sm: 12px;
+  --r:    18px;
+  --r-lg: 24px;
+}
+
+/* ═══════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior:smooth; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--navy);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Ambient background */
+body::before {
+  content:'';
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 60vw 40vh at 15% 10%, rgba(212,175,55,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 50vw 30vh at 85% 85%, rgba(74,158,255,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 40vw 25vh at 50% 50%, rgba(46,204,113,0.02) 0%, transparent 60%);
+}
+body::after {
+  content:'';
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image: radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.wrapper {
+  position:relative; z-index:1;
+  width:100%; max-width:1600px;
+  margin:0 auto;
+  padding:0 clamp(12px, 3vw, 32px) clamp(32px, 5vw, 64px);
+}
+
+/* ═══════════════════════════════════════════
+   HEADER — collapses gracefully on mobile
+═══════════════════════════════════════════ */
+header {
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:var(--gap-sm);
+  padding: clamp(16px, 3vw, 28px) 0 clamp(14px, 2vw, 22px);
+  border-bottom:1px solid var(--border);
+  margin-bottom: clamp(18px, 3vw, 32px);
+}
+
+.brand { display:flex; align-items:center; gap:clamp(10px,2vw,16px); }
+
+.brand-logo {
+  width: clamp(38px, 5vw, 52px);
+  height: clamp(38px, 5vw, 52px);
+  background: linear-gradient(135deg, var(--gold), #A8860A);
+  border-radius: clamp(10px,1.5vw,14px);
+  display:flex; align-items:center; justify-content:center;
+  font-size: clamp(18px, 2.5vw, 26px);
+  box-shadow: 0 6px 24px rgba(212,175,55,0.28);
+  flex-shrink:0;
+}
+
+.brand-name {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(17px, 2.5vw, 26px);
+  font-weight:800; letter-spacing:-0.5px;
+  background: linear-gradient(135deg, var(--white) 0%, var(--gold-light) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.brand-tagline {
+  font-size: clamp(9px, 1.2vw, 12px);
+  color:var(--text2);
+  font-family:'JetBrains Mono', monospace;
+  letter-spacing:1.5px; text-transform:uppercase;
+  margin-top:2px;
+}
+
+.header-right {
+  display:flex; align-items:center;
+  gap: clamp(6px, 1.5vw, 18px);
+  flex-wrap:wrap;
+}
+
+.live-badge {
+  display:flex; align-items:center; gap:7px;
+  background:rgba(46,204,113,0.1);
+  border:1px solid rgba(46,204,113,0.2);
+  border-radius:24px;
+  padding: clamp(5px,1vw,8px) clamp(10px,1.5vw,16px);
+  font-size: clamp(10px,1.2vw,13px);
+  color:var(--green);
+  font-family:'JetBrains Mono', monospace;
+}
+.live-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:var(--green);
+  animation:blink 1.8s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.7)} }
+
+.meta-pill {
+  background:var(--navy-light);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding: clamp(4px,0.8vw,7px) clamp(10px,1.5vw,16px);
+  font-size: clamp(9px,1.1vw,11px);
+  color:var(--text2);
+  font-family:'JetBrains Mono', monospace;
+  white-space:nowrap;
+}
+
+/* Hide some pills on mobile */
+@media(max-width:480px){ .meta-pill:first-child{ display:none; } }
+
+/* ═══════════════════════════════════════════
+   TABS — horizontal scroll on small screens
+═══════════════════════════════════════════ */
+.tabs-wrap {
+  margin-bottom: clamp(20px, 3vw, 32px);
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.tabs-wrap::-webkit-scrollbar { display:none; }
+
+.tabs {
+  display:flex; gap:4px;
+  background:var(--navy-mid);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:5px;
+  width:fit-content;
+  min-width:100%;
+}
+
+.tab {
+  flex:1; min-width:0;
+  padding: clamp(8px,1.2vw,11px) clamp(12px,2vw,24px);
+  border-radius:var(--r-sm);
+  font-size: clamp(11px,1.3vw,14px);
+  font-weight:500;
+  cursor:pointer;
+  color:var(--text2);
+  transition:all 0.25s ease;
+  display:flex; align-items:center; justify-content:center;
+  gap: clamp(4px,0.8vw,8px);
+  border:1px solid transparent;
+  white-space:nowrap;
+  text-align:center;
+  -webkit-tap-highlight-color:transparent;
+}
+.tab .ti { font-size: clamp(13px,1.8vw,18px); }
+.tab-text { display:inline; }
+.tab:hover { color:var(--text); background:var(--navy-light); }
+.tab.active { color:var(--navy); font-weight:700; }
+.tab.active.t1 { background:var(--gold); box-shadow:0 4px 18px rgba(212,175,55,0.4); }
+.tab.active.t2 { background:var(--green); color:#0B1628; box-shadow:0 4px 18px rgba(46,204,113,0.4); }
+.tab.active.t3 { background:var(--blue); box-shadow:0 4px 18px rgba(74,158,255,0.4); }
+.tab.active.t4 { background:var(--purple); box-shadow:0 4px 18px rgba(155,89,182,0.4); }
+
+/* On very small phones, hide tab text, show only emoji */
+@media(max-width:360px){
+  .tab-text { display:none; }
+  .tab { padding:10px; flex:0 0 auto; min-width:48px; }
+  .tabs { min-width:unset; }
+}
+
+/* ═══════════════════════════════════════════
+   PAGES
+═══════════════════════════════════════════ */
+.page { display:none; animation:fadeIn 0.35s ease; }
+.page.active { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+/* ═══════════════════════════════════════════
+   INSIGHT BANNER
+═══════════════════════════════════════════ */
+.insight-banner {
+  background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(212,175,55,0.02));
+  border:1px solid var(--border-gold);
+  border-radius:var(--r);
+  padding: clamp(12px,2vw,18px) clamp(14px,2.5vw,24px);
+  margin-bottom: clamp(18px,2.5vw,28px);
+  display:flex; align-items:flex-start; gap: clamp(10px,1.5vw,16px);
+}
+.insight-icon { font-size: clamp(18px,2.5vw,24px); flex-shrink:0; margin-top:1px; }
+.insight-body { font-size: clamp(12px,1.4vw,14px); line-height:1.65; color:var(--text2); }
+.insight-body strong { color:var(--gold); font-weight:600; }
+.insight-body .loss { color:var(--red); font-weight:600; }
+.insight-body .win  { color:var(--green); font-weight:600; }
+
+/* ═══════════════════════════════════════════
+   KPI GRID — 4col → 2col → 1col
+═══════════════════════════════════════════ */
+.kpi-grid {
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(10px,1.8vw,18px);
+  margin-bottom: clamp(18px,2.5vw,28px);
+}
+@media(max-width:900px) { .kpi-grid { grid-template-columns:repeat(2,1fr); } }
+@media(max-width:480px) { .kpi-grid { grid-template-columns:1fr 1fr; gap:10px; } }
+
+.kpi {
+  background:var(--navy-card);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding: clamp(16px,2vw,24px) clamp(14px,2vw,22px) clamp(14px,2vw,20px);
+  position:relative; overflow:hidden;
+  transition:transform 0.2s ease, box-shadow 0.2s ease;
+  animation:slideUp 0.5s ease both;
+  cursor:default;
+  -webkit-tap-highlight-color:transparent;
+}
+.kpi:hover { transform:translateY(-3px); box-shadow:0 12px 40px rgba(0,0,0,0.3); }
+.kpi:nth-child(1){animation-delay:.05s}
+.kpi:nth-child(2){animation-delay:.10s}
+.kpi:nth-child(3){animation-delay:.15s}
+.kpi:nth-child(4){animation-delay:.20s}
+@keyframes slideUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+.kpi::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:var(--kpi-color);
+}
+.kpi::after {
+  content:''; position:absolute; top:-40px; right:-40px;
+  width:100px; height:100px; border-radius:50%;
+  background:var(--kpi-glow); pointer-events:none;
+}
+.kpi-header {
+  display:flex; justify-content:space-between; align-items:flex-start;
+  margin-bottom: clamp(10px,1.5vw,14px);
+  gap:4px;
+}
+.kpi-label {
+  font-size: clamp(9px,1vw,11px);
+  text-transform:uppercase; letter-spacing:1.2px;
+  font-family:'JetBrains Mono', monospace;
+  color:var(--text2); font-weight:500;
+  line-height:1.3;
+}
+.kpi-badge {
+  font-size: clamp(8px,0.9vw,10px);
+  padding:2px 7px; border-radius:20px;
+  font-weight:700; font-family:'JetBrains Mono', monospace;
+  white-space:nowrap; flex-shrink:0;
+}
+.kpi-badge.up   { background:rgba(46,204,113,0.15); color:var(--green); }
+.kpi-badge.down { background:rgba(231,76,60,0.15);  color:var(--red); }
+.kpi-badge.neu  { background:rgba(74,158,255,0.15); color:var(--blue); }
+.kpi-value {
+  font-family:'Playfair Display', serif;
+  font-size: clamp(22px,3.5vw,36px);
+  font-weight:700; color:var(--white);
+  line-height:1; margin-bottom:6px;
+  letter-spacing:-1px;
+}
+.kpi-sub {
+  font-size: clamp(10px,1.1vw,12px);
+  color:var(--text3); line-height:1.4;
+}
+
+/* ═══════════════════════════════════════════
+   GRID LAYOUTS — fully fluid
+═══════════════════════════════════════════ */
+.grid-2 {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap: clamp(12px,2vw,20px);
+  margin-bottom: clamp(12px,2vw,20px);
+}
+.grid-3-1 {
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap: clamp(12px,2vw,20px);
+  margin-bottom: clamp(12px,2vw,20px);
+}
+.grid-1-3 {
+  display:grid;
+  grid-template-columns:1fr 2fr;
+  gap: clamp(12px,2vw,20px);
+  margin-bottom: clamp(12px,2vw,20px);
+}
+
+/* Stack all grids on tablet and below */
+@media(max-width:768px) {
+  .grid-2, .grid-3-1, .grid-1-3 {
+    grid-template-columns:1fr;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   CARDS
+═══════════════════════════════════════════ */
+.card {
+  background:var(--navy-card);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding: clamp(16px,2.5vw,26px);
+  animation:slideUp 0.5s ease both;
+  transition:border-color 0.2s;
+  min-width:0; /* prevent overflow in grid */
+}
+.card:hover { border-color:rgba(255,255,255,0.11); }
+.card:nth-child(1){animation-delay:.25s}
+.card:nth-child(2){animation-delay:.32s}
+.card:nth-child(3){animation-delay:.39s}
+.card-title {
+  font-family:'Playfair Display', serif;
+  font-size: clamp(13px,1.8vw,17px);
+  font-weight:700; color:var(--white);
+  margin-bottom:4px;
+}
+.card-sub {
+  font-size: clamp(9px,1.1vw,11px);
+  color:var(--text3);
+  font-family:'JetBrains Mono', monospace;
+  margin-bottom: clamp(14px,2vw,22px);
+}
+
+/* ═══════════════════════════════════════════
+   LEGEND
+═══════════════════════════════════════════ */
+.legend {
+  display:flex; gap:clamp(8px,1.5vw,14px);
+  flex-wrap:wrap; margin-top:12px;
+}
+.leg-item { display:flex; align-items:center; gap:6px; font-size:clamp(10px,1.1vw,12px); color:var(--text2); }
+.leg-dot  { width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+
+/* ═══════════════════════════════════════════
+   TABLE — horizontal scroll on mobile
+═══════════════════════════════════════════ */
+.table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+table { width:100%; border-collapse:collapse; min-width:360px; }
+th {
+  text-align:left;
+  font-size: clamp(9px,1vw,10px);
+  text-transform:uppercase; letter-spacing:1.5px;
+  font-family:'JetBrains Mono', monospace;
+  color:var(--text3);
+  padding: clamp(8px,1vw,11px) clamp(10px,1.5vw,16px);
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+td {
+  padding: clamp(9px,1.2vw,13px) clamp(10px,1.5vw,16px);
+  font-size: clamp(11px,1.3vw,13px);
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  vertical-align:middle;
+}
+tr:hover td { background:rgba(255,255,255,0.02); }
+.mono      { font-family:'JetBrains Mono', monospace; font-size:clamp(10px,1.2vw,12px); }
+.profit-num{ color:var(--green); }
+.loss-num  { color:var(--red); }
+.rank {
+  width:26px; height:26px; border-radius:8px;
+  background:var(--navy-light); border:1px solid var(--border);
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:11px; font-family:'JetBrains Mono', monospace; color:var(--text2);
+}
+.status-pill {
+  font-size:clamp(9px,1vw,10px);
+  padding:2px 7px; border-radius:8px;
+  font-family:'JetBrains Mono', monospace; font-weight:700;
+  white-space:nowrap;
+}
+
+/* ═══════════════════════════════════════════
+   REGION CARDS — 4col → 2col → 1col
+═══════════════════════════════════════════ */
+.region-cards {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap: clamp(10px,1.5vw,16px);
+  margin-bottom: clamp(14px,2vw,22px);
+}
+@media(max-width:768px){ .region-cards{ grid-template-columns:repeat(2,1fr); } }
+@media(max-width:420px){ .region-cards{ grid-template-columns:1fr 1fr; gap:8px; } }
+
+.region-card {
+  background:var(--navy-light);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding: clamp(14px,2vw,20px) clamp(12px,1.5vw,18px);
+  text-align:center; position:relative; overflow:hidden;
+  transition:transform 0.2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.region-card:hover { transform:translateY(-2px); }
+.region-card::before {
+  content:''; position:absolute; bottom:0; left:0; right:0;
+  height:3px; background:var(--rc-color);
+}
+.rc-rank {
+  position:absolute; top:10px; right:10px;
+  font-size:9px; padding:2px 7px; border-radius:10px;
+  font-family:'JetBrains Mono', monospace; font-weight:700;
+}
+.rc-name  { font-size:clamp(11px,1.5vw,14px); font-weight:600; margin-bottom:10px; }
+.rc-sales { font-family:'Playfair Display',serif; font-size:clamp(18px,2.5vw,24px); font-weight:700; color:var(--gold); margin-bottom:4px; }
+.rc-margin{ font-size:clamp(9px,1.1vw,11px); font-family:'JetBrains Mono',monospace; }
+
+/* ═══════════════════════════════════════════
+   SEGMENT CARDS — 3col → 1col
+═══════════════════════════════════════════ */
+.seg-cards {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap: clamp(10px,1.5vw,16px);
+  margin-bottom: clamp(14px,2vw,22px);
+}
+@media(max-width:768px){ .seg-cards{ grid-template-columns:1fr; } }
+@media(max-width:480px){ .seg-cards{ grid-template-columns:1fr; } }
+
+.seg-card {
+  background:var(--navy-light);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding: clamp(16px,2vw,24px);
+  position:relative; overflow:hidden;
+  transition:transform 0.2s;
+}
+.seg-card:hover { transform:translateY(-2px); }
+.seg-card::after {
+  content:''; position:absolute; top:-30px; right:-30px;
+  width:90px; height:90px; border-radius:50%;
+  background:var(--sc-glow); pointer-events:none;
+}
+.sc-icon  { font-size:clamp(22px,3vw,30px); margin-bottom:10px; }
+.sc-name  { font-family:'Playfair Display',serif; font-size:clamp(17px,2.2vw,22px); font-weight:700; margin-bottom:14px; }
+.sc-row   { display:flex; justify-content:space-between; margin-bottom:8px; }
+.sc-label { font-size:clamp(10px,1.2vw,12px); color:var(--text2); }
+.sc-value { font-size:clamp(10px,1.2vw,12px); font-family:'JetBrains Mono', monospace; font-weight:500; }
+.sc-bar-bg   { height:4px; background:var(--navy-card); border-radius:4px; margin-top:14px; }
+.sc-bar-fill { height:100%; border-radius:4px; }
+
+/* ═══════════════════════════════════════════
+   STATE BARS
+═══════════════════════════════════════════ */
+.state-row   { margin-bottom:clamp(12px,1.8vw,18px); }
+.state-meta  { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:8px; flex-wrap:wrap; }
+.state-name  { font-size:clamp(11px,1.4vw,14px); font-weight:500; }
+.state-val   { font-size:clamp(10px,1.2vw,13px); font-family:'JetBrains Mono',monospace; flex-shrink:0; }
+.bar-track   { height:5px; background:var(--navy-light); border-radius:4px; overflow:hidden; }
+.bar-fill    { height:100%; border-radius:4px; transition:width 1.2s ease; }
+
+/* ═══════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════ */
+::-webkit-scrollbar       { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:var(--navy); }
+::-webkit-scrollbar-thumb { background:var(--navy-hover); border-radius:3px; }
+
+/* ═══════════════════════════════════════════
+   CHART CANVAS — responsive height
+   Use fixed aspect ratio on small screens
+═══════════════════════════════════════════ */
+canvas { max-width:100%; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- ═════════════ HEADER ═════════════ -->
+<header>
+  <div class="brand">
+    <div class="brand-logo">🛒</div>
+    <div>
+      <div class="brand-name">SuperStore</div>
+      <div class="brand-tagline">Executive Intelligence · 2014–2017</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="meta-pill">9,994 transactions</span>
+    <span class="meta-pill">793 customers</span>
+    <div class="live-badge"><div class="live-dot"></div>Live Data</div>
+  </div>
+</header>
+
+<!-- ═════════════ TABS ═════════════ -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <div class="tab t1 active" onclick="showPage('overview',this)">
+      <span class="ti">💰</span><span class="tab-text">Revenue &amp; Sales</span>
+    </div>
+    <div class="tab t2" onclick="showPage('profit',this)">
+      <span class="ti">📊</span><span class="tab-text">Profit &amp; Losses</span>
+    </div>
+    <div class="tab t3" onclick="showPage('regional',this)">
+      <span class="ti">🗺️</span><span class="tab-text">Regional Map</span>
+    </div>
+    <div class="tab t4" onclick="showPage('segments',this)">
+      <span class="ti">👥</span><span class="tab-text">Customers</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE 1 — REVENUE & SALES  (GOLD = money / aspiration)
+══════════════════════════════════════════════════════ -->
+<div class="page active" id="page-overview">
+
+  <div class="insight-banner">
+    <span class="insight-icon">💡</span>
+    <div class="insight-body">
+      <strong>At a glance:</strong> SuperStore generated <strong>$2.30M in revenue</strong> over 4 years with <span class="win">$286K total profit</span> (12.5% margin). Revenue grew every year — 2017 was the best at <strong>$733K</strong>. Technology leads all categories. <span class="loss">3 sub-categories actively lose money.</span>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi" style="--kpi-color:var(--gold);--kpi-glow:var(--gold-glow)">
+      <div class="kpi-header"><div class="kpi-label">💵 Total Revenue</div><span class="kpi-badge up">↑ +20.3%</span></div>
+      <div class="kpi-value">$2.30M</div>
+      <div class="kpi-sub">Across all 4 years · 5,009 orders</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--green);--kpi-glow:var(--green-glow)">
+      <div class="kpi-header"><div class="kpi-label">📈 Total Profit</div><span class="kpi-badge up">↑ +14.2%</span></div>
+      <div class="kpi-value">$286K</div>
+      <div class="kpi-sub">Margin: 12.47% overall</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--blue);--kpi-glow:var(--blue-glow)">
+      <div class="kpi-header"><div class="kpi-label">🛒 Total Orders</div><span class="kpi-badge neu">5,009</span></div>
+      <div class="kpi-value">5,009</div>
+      <div class="kpi-sub">Avg $458 per order</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--purple);--kpi-glow:rgba(155,89,182,0.12)">
+      <div class="kpi-header"><div class="kpi-label">👥 Customers</div><span class="kpi-badge neu">793</span></div>
+      <div class="kpi-value">793</div>
+      <div class="kpi-sub">Avg $2,896 revenue each</div>
+    </div>
+  </div>
+
+  <div class="grid-3-1">
+    <div class="card">
+      <div class="card-title">Annual Revenue &amp; Profit Growth</div>
+      <div class="card-sub">GOLD = Sales · GREEN = Profit · LINE = YoY Growth %</div>
+      <canvas id="yearChart"></canvas>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:var(--gold)"></div>Sales Revenue</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Profit</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--blue);border-radius:50%"></div>YoY Growth %</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Revenue by Category</div>
+      <div class="card-sub">Share of total $2.30M</div>
+      <canvas id="catDonut"></canvas>
+      <div class="legend" style="justify-content:center">
+        <div class="leg-item"><div class="leg-dot" style="background:var(--blue)"></div>Technology</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--gold)"></div>Furniture</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Office Supplies</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Top 10 Sub-Categories by Sales</div>
+      <div class="card-sub">Phones &amp; Chairs together = $658K</div>
+      <canvas id="subcatSales"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Category: Sales vs Profit</div>
+      <div class="card-sub">Furniture sells well but barely profitable</div>
+      <canvas id="catCompare"></canvas>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:var(--gold)"></div>Sales</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Profit</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE 2 — PROFIT & LOSSES  (GREEN=profit / RED=loss)
+══════════════════════════════════════════════════════ -->
+<div class="page" id="page-profit">
+
+  <div class="insight-banner" style="border-color:rgba(231,76,60,0.3);background:rgba(231,76,60,0.05)">
+    <span class="insight-icon">🚨</span>
+    <div class="insight-body">
+      <strong>Critical finding:</strong> <span class="loss">Tables lost $17,725</span> despite $207K in sales. <span class="loss">Texas alone lost $25,729.</span> Discounts above 30% destroy margins across ALL categories. Furniture's margin is a dangerously low <span class="loss">2.49%</span>.
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi" style="--kpi-color:var(--green);--kpi-glow:var(--green-glow)">
+      <div class="kpi-header"><div class="kpi-label">✅ Total Profit</div><span class="kpi-badge up">Healthy</span></div>
+      <div class="kpi-value">$286K</div>
+      <div class="kpi-sub">Growing every year since 2014</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--green);--kpi-glow:var(--green-glow)">
+      <div class="kpi-header"><div class="kpi-label">📊 Avg Margin</div><span class="kpi-badge up">12.47%</span></div>
+      <div class="kpi-value">12.5%</div>
+      <div class="kpi-sub">Tech 17.4% · Furniture 2.5%</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--red);--kpi-glow:var(--red-glow)">
+      <div class="kpi-header"><div class="kpi-label">🔴 Loss Sub-Cats</div><span class="kpi-badge down">Action needed</span></div>
+      <div class="kpi-value">3</div>
+      <div class="kpi-sub">Tables · Bookcases · Supplies</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--red);--kpi-glow:var(--red-glow)">
+      <div class="kpi-header"><div class="kpi-label">📍 Worst State</div><span class="kpi-badge down">−$25.7K</span></div>
+      <div class="kpi-value">Texas</div>
+      <div class="kpi-sub">$170K sales · net negative</div>
+    </div>
+  </div>
+
+  <div class="grid-3-1">
+    <div class="card">
+      <div class="card-title">Profit by Sub-Category</div>
+      <div class="card-sub">🔴 RED = Losing Money · 🟢 GREEN = Profitable</div>
+      <canvas id="profitSubcat"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Margin % by Category</div>
+      <div class="card-sub">Furniture is 7× less profitable than Tech</div>
+      <canvas id="marginGauge"></canvas>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">⚠️ Discount vs Profit Margin</div>
+      <div class="card-sub">As discount ↑ → margin collapses. Red zone = active losses.</div>
+      <canvas id="discountScatter"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">🔴 Loss-Making States (Top 5)</div>
+      <div class="card-sub">Positive sales but negative profit — review discounting</div>
+      <br>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>State</th><th>Revenue</th><th>Net P/L</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><span class="rank">1</span></td><td>Texas</td><td class="mono">$170.2K</td><td class="mono loss-num">−$25,729</td><td><span class="status-pill" style="background:rgba(231,76,60,0.15);color:var(--red)">CRITICAL</span></td></tr>
+            <tr><td><span class="rank">2</span></td><td>Ohio</td><td class="mono">$78.3K</td><td class="mono loss-num">−$16,971</td><td><span class="status-pill" style="background:rgba(231,76,60,0.15);color:var(--red)">CRITICAL</span></td></tr>
+            <tr><td><span class="rank">3</span></td><td>Pennsylvania</td><td class="mono">$116.5K</td><td class="mono loss-num">−$15,560</td><td><span class="status-pill" style="background:rgba(231,76,60,0.15);color:var(--red)">CRITICAL</span></td></tr>
+            <tr><td><span class="rank">4</span></td><td>Illinois</td><td class="mono">$80.2K</td><td class="mono loss-num">−$12,608</td><td><span class="status-pill" style="background:rgba(255,165,0,0.15);color:var(--gold)">HIGH RISK</span></td></tr>
+            <tr><td><span class="rank">5</span></td><td>N. Carolina</td><td class="mono">$55.6K</td><td class="mono loss-num">−$7,491</td><td><span class="status-pill" style="background:rgba(255,165,0,0.12);color:var(--gold)">MONITOR</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE 3 — REGIONAL  (each region = its own color)
+══════════════════════════════════════════════════════ -->
+<div class="page" id="page-regional">
+
+  <div class="insight-banner" style="border-color:rgba(74,158,255,0.3);background:rgba(74,158,255,0.05)">
+    <span class="insight-icon">🗺️</span>
+    <div class="insight-body">
+      <strong>West dominates:</strong> $725K sales · 14.9% margin — best in class. <span class="win">California alone = $458K (20% of all revenue).</span> Central is the weak link at just 7.9% margin. <span class="loss">Texas drags Central into losses.</span>
+    </div>
+  </div>
+
+  <div class="region-cards">
+    <div class="region-card" style="--rc-color:#4A9EFF">
+      <span class="rc-rank" style="background:rgba(74,158,255,0.15);color:#4A9EFF">#1 BEST</span>
+      <div class="rc-name" style="color:#4A9EFF">🌊 West</div>
+      <div class="rc-sales">$725K</div>
+      <div class="rc-margin" style="color:var(--green)">Margin: 14.9% ✓</div>
+    </div>
+    <div class="region-card" style="--rc-color:var(--green)">
+      <span class="rc-rank" style="background:rgba(46,204,113,0.15);color:var(--green)">#2</span>
+      <div class="rc-name" style="color:var(--green)">🏙️ East</div>
+      <div class="rc-sales">$679K</div>
+      <div class="rc-margin" style="color:var(--green)">Margin: 13.5% ✓</div>
+    </div>
+    <div class="region-card" style="--rc-color:var(--gold)">
+      <span class="rc-rank" style="background:rgba(212,175,55,0.15);color:var(--gold)">#3</span>
+      <div class="rc-name" style="color:var(--gold)">🌆 Central</div>
+      <div class="rc-sales">$501K</div>
+      <div class="rc-margin" style="color:var(--red)">Margin: 7.9% ⚠️</div>
+    </div>
+    <div class="region-card" style="--rc-color:var(--purple)">
+      <span class="rc-rank" style="background:rgba(155,89,182,0.15);color:var(--purple)">#4</span>
+      <div class="rc-name" style="color:var(--purple)">🌴 South</div>
+      <div class="rc-sales">$392K</div>
+      <div class="rc-margin" style="color:var(--gold)">Margin: 11.9% ~</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Sales &amp; Profit by Region</div>
+      <div class="card-sub">Each region has its own color — compare at a glance</div>
+      <canvas id="regionBar"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Profit Margin % by Region</div>
+      <div class="card-sub">Central is well below 12.47% company average</div>
+      <canvas id="regionMargin"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Top 5 States by Revenue</div>
+    <div class="card-sub">California is 20% of the entire company — concentration risk</div>
+    <div id="statesBars" style="margin-top:8px"></div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE 4 — SEGMENTS
+     Consumer=Blue, Corporate=Green, HomeOffice=Purple
+══════════════════════════════════════════════════════ -->
+<div class="page" id="page-segments">
+
+  <div class="insight-banner" style="border-color:rgba(155,89,182,0.3);background:rgba(155,89,182,0.05)">
+    <span class="insight-icon">👥</span>
+    <div class="insight-body">
+      <strong>Segment story:</strong> <span class="win">Consumer drives 50.5% of revenue</span> — biggest market. But <strong>Home Office has the best margin at 14.0%</strong>. Corporate is the ideal growth target: high revenue + strong 13% margin.
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi" style="--kpi-color:var(--blue);--kpi-glow:var(--blue-glow)">
+      <div class="kpi-header"><div class="kpi-label">👤 Consumer</div><span class="kpi-badge neu">50.5%</span></div>
+      <div class="kpi-value">$1.16M</div>
+      <div class="kpi-sub">11.6% margin · largest segment</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--green);--kpi-glow:var(--green-glow)">
+      <div class="kpi-header"><div class="kpi-label">🏢 Corporate</div><span class="kpi-badge up">13.0%</span></div>
+      <div class="kpi-value">$706K</div>
+      <div class="kpi-sub">Best revenue-to-profit ratio</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--purple);--kpi-glow:rgba(155,89,182,0.12)">
+      <div class="kpi-header"><div class="kpi-label">🏠 Home Office</div><span class="kpi-badge up">14.0%</span></div>
+      <div class="kpi-value">$430K</div>
+      <div class="kpi-sub">Highest margin · fastest growing</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--gold);--kpi-glow:var(--gold-glow)">
+      <div class="kpi-header"><div class="kpi-label">📊 All Customers</div><span class="kpi-badge neu">793</span></div>
+      <div class="kpi-value">793</div>
+      <div class="kpi-sub">Across all 3 segments</div>
+    </div>
+  </div>
+
+  <div class="seg-cards">
+    <div class="seg-card" style="--sc-glow:rgba(74,158,255,0.08);border-top:3px solid var(--blue)">
+      <div class="sc-icon">👤</div>
+      <div class="sc-name" style="color:var(--blue)">Consumer</div>
+      <div class="sc-row"><span class="sc-label">Revenue</span><span class="sc-value" style="color:var(--gold)">$1,161,401</span></div>
+      <div class="sc-row"><span class="sc-label">Profit</span><span class="sc-value" style="color:var(--green)">$134,119</span></div>
+      <div class="sc-row"><span class="sc-label">Margin</span><span class="sc-value">11.55%</span></div>
+      <div class="sc-row"><span class="sc-label">Revenue Share</span><span class="sc-value">50.5%</span></div>
+      <div class="sc-bar-bg"><div class="sc-bar-fill" style="width:100%;background:var(--blue)"></div></div>
+    </div>
+    <div class="seg-card" style="--sc-glow:rgba(46,204,113,0.08);border-top:3px solid var(--green)">
+      <div class="sc-icon">🏢</div>
+      <div class="sc-name" style="color:var(--green)">Corporate</div>
+      <div class="sc-row"><span class="sc-label">Revenue</span><span class="sc-value" style="color:var(--gold)">$706,146</span></div>
+      <div class="sc-row"><span class="sc-label">Profit</span><span class="sc-value" style="color:var(--green)">$91,979</span></div>
+      <div class="sc-row"><span class="sc-label">Margin</span><span class="sc-value">13.03%</span></div>
+      <div class="sc-row"><span class="sc-label">Revenue Share</span><span class="sc-value">30.7%</span></div>
+      <div class="sc-bar-bg"><div class="sc-bar-fill" style="width:60.8%;background:var(--green)"></div></div>
+    </div>
+    <div class="seg-card" style="--sc-glow:rgba(155,89,182,0.08);border-top:3px solid var(--purple)">
+      <div class="sc-icon">🏠</div>
+      <div class="sc-name" style="color:var(--purple)">Home Office</div>
+      <div class="sc-row"><span class="sc-label">Revenue</span><span class="sc-value" style="color:var(--gold)">$429,653</span></div>
+      <div class="sc-row"><span class="sc-label">Profit</span><span class="sc-value" style="color:var(--green)">$60,299</span></div>
+      <div class="sc-row"><span class="sc-label">Margin</span><span class="sc-value" style="color:var(--green)">14.03% ★</span></div>
+      <div class="sc-row"><span class="sc-label">Revenue Share</span><span class="sc-value">18.7%</span></div>
+      <div class="sc-bar-bg"><div class="sc-bar-fill" style="width:37%;background:var(--purple)"></div></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Revenue vs Profit by Segment</div>
+      <div class="card-sub">Home Office punches above its weight in profit</div>
+      <canvas id="segBar"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Profit Margin Comparison</div>
+      <div class="card-sub">Home Office = highest margin despite lowest revenue</div>
+      <canvas id="segMargin"></canvas>
+    </div>
+  </div>
+</div>
+</div><!-- /wrapper -->
+
+<script>
+/* ══════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════ */
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+  // Resize all charts when switching tabs
+  Object.values(charts).forEach(c => c && c.resize());
+}
+
+/* ══════════════════════════════════════════
+   GLOBAL CHART CONFIG
+══════════════════════════════════════════ */
+const GOLD='#D4AF37', GOLDF='#F0D060', GREEN='#2ECC71', RED='#E74C3C',
+      BLUE='#4A9EFF', PURPLE='#9B59B6', TEXT2='#8FA3C8',
+      BORDER='rgba(255,255,255,0.06)';
+
+Chart.defaults.color        = TEXT2;
+Chart.defaults.font.family  = "'Outfit', sans-serif";
+Chart.defaults.font.size    = 11;
+Chart.defaults.responsive   = true;
+Chart.defaults.maintainAspectRatio = true;
+
+const grid   = { color: BORDER, drawBorder:false };
+const noGrid = { display:false };
+const tip    = {
+  backgroundColor:'#162645', borderColor:BORDER, borderWidth:1,
+  titleColor:'#fff', bodyColor:TEXT2, padding:10, cornerRadius:8
+};
+
+function moneyFmt(v){
+  if(Math.abs(v)>=1e6) return '$'+(v/1e6).toFixed(1)+'M';
+  if(Math.abs(v)>=1e3) return '$'+(v/1e3).toFixed(0)+'K';
+  return '$'+Math.round(v);
+}
+
+const charts = {};
+
+/* ══════════════════════════════════════════
+   PAGE 1 CHARTS
+══════════════════════════════════════════ */
+charts.year = new Chart(document.getElementById('yearChart'),{
+  data:{
+    labels:['2014','2015','2016','2017'],
+    datasets:[
+      { type:'bar', label:'Sales', data:[484248,470533,609206,733215],
+        backgroundColor:['#D4AF3755','#D4AF3777','#D4AF37AA','#D4AF37'],
+        borderRadius:7, yAxisID:'y', order:2 },
+      { type:'bar', label:'Profit', data:[49544,61619,81795,93439],
+        backgroundColor:['#2ECC7155','#2ECC7177','#2ECC71AA','#2ECC71'],
+        borderRadius:7, yAxisID:'y', order:2 },
+      { type:'line', label:'Growth %', data:[null,-2.8,29.5,20.3],
+        borderColor:BLUE, backgroundColor:'rgba(74,158,255,0.08)',
+        borderWidth:2.5, pointRadius:5, pointBackgroundColor:BLUE,
+        fill:false, tension:0.4, yAxisID:'y2', order:1 }
+    ]
+  },
+  options:{
+    aspectRatio:2,
+    plugins:{ legend:{display:false}, tooltip:{ ...tip,
+      callbacks:{ label: c => ' '+(c.datasetIndex===2 ? c.raw?.toFixed(1)+'%' : moneyFmt(c.raw)) }
+    }},
+    scales:{
+      y:{ grid, ticks:{ callback:v=>moneyFmt(v) } },
+      y2:{ position:'right', grid:noGrid, ticks:{ callback:v=>v+'%' },
+           title:{display:true,text:'Growth %',color:BLUE} },
+      x:{ grid:noGrid }
+    }
+  }
+});
+
+charts.catDonut = new Chart(document.getElementById('catDonut'),{
+  type:'doughnut',
+  data:{
+    labels:['Technology','Furniture','Office Supplies'],
+    datasets:[{ data:[836154,742000,719047], backgroundColor:[BLUE,GOLD,GREEN], borderWidth:0, hoverOffset:8 }]
+  },
+  options:{
+    aspectRatio:1.6, cutout:'70%',
+    plugins:{ legend:{display:false},
+      tooltip:{ ...tip, callbacks:{ label: c=>' '+c.label+': '+moneyFmt(c.raw) } }
+    }
+  }
+});
+
+charts.subcatSales = new Chart(document.getElementById('subcatSales'),{
+  type:'bar',
+  data:{
+    labels:['Phones','Chairs','Storage','Tables','Binders','Machines','Accessories','Copiers','Bookcases','Appliances'],
+    datasets:[{ data:[330007,328449,223844,206966,203413,189239,167380,149528,114880,107532],
+      backgroundColor:Array.from({length:10},(_,i)=>`rgba(212,175,55,${0.38+i*0.07})`),
+      borderRadius:5 }]
+  },
+  options:{
+    indexAxis:'y', aspectRatio:1.3,
+    plugins:{ legend:{display:false}, tooltip:{ ...tip, callbacks:{ label:c=>' '+moneyFmt(c.raw) } } },
+    scales:{ x:{ grid, ticks:{callback:v=>moneyFmt(v)} }, y:{ grid:noGrid } }
+  }
+});
+
+charts.catCompare = new Chart(document.getElementById('catCompare'),{
+  type:'bar',
+  data:{
+    labels:['Furniture','Office Supplies','Technology'],
+    datasets:[
+      { label:'Sales',  data:[742000,719047,836154], backgroundColor:GOLD+'CC', borderRadius:6 },
+      { label:'Profit', data:[18451,122491,145455],  backgroundColor:GREEN+'CC', borderRadius:6 }
+    ]
+  },
+  options:{
+    aspectRatio:1.3,
+    plugins:{ legend:{display:false}, tooltip:{ ...tip, callbacks:{ label:c=>' '+c.dataset.label+': '+moneyFmt(c.raw) } } },
+    scales:{ y:{ grid, ticks:{callback:v=>moneyFmt(v)} }, x:{ grid:noGrid } }
+  }
+});
+
+/* ══════════════════════════════════════════
+   PAGE 2 CHARTS
+══════════════════════════════════════════ */
+const pVals = [-17725,-3473,-1189,950,3385,5546,6528,6964,13059,18138,21279,26590,30222,34054,41937,44516,55618];
+const pLabels = ['Tables','Bookcases','Supplies','Fasteners','Machines','Labels','Art','Envelopes','Furnishings','Appliances','Storage','Chairs','Binders','Paper','Accessories','Phones','Copiers'];
+
+charts.profitSubcat = new Chart(document.getElementById('profitSubcat'),{
+  type:'bar',
+  data:{
+    labels:pLabels,
+    datasets:[{ data:pVals,
+      backgroundColor:pVals.map(v=>v<0?RED+'BB':GREEN+'BB'),
+      borderColor:pVals.map(v=>v<0?RED:GREEN),
+      borderWidth:1, borderRadius:4 }]
+  },
+  options:{
+    indexAxis:'y', aspectRatio:0.9,
+    plugins:{ legend:{display:false}, tooltip:{ ...tip,
+      callbacks:{ label:c=>(c.raw<0?' 🔴 Loss: ':' 🟢 Profit: ')+moneyFmt(c.raw) }
+    }},
+    scales:{ x:{ grid, ticks:{callback:v=>moneyFmt(v)} }, y:{ grid:noGrid, ticks:{font:{size:10}} } }
+  }
+});
+
+charts.marginGauge = new Chart(document.getElementById('marginGauge'),{
+  type:'bar',
+  data:{
+    labels:['Furniture','Office Supplies','Technology'],
+    datasets:[{ data:[2.49,17.03,17.40],
+      backgroundColor:[RED+'CC',GREEN+'99',GREEN+'CC'],
+      borderColor:[RED,GREEN,GREEN], borderWidth:2, borderRadius:8, borderSkipped:false }]
+  },
+  options:{
+    aspectRatio:1.3,
+    plugins:{ legend:{display:false}, tooltip:{ ...tip, callbacks:{ label:c=>' Margin: '+c.raw+'%' } } },
+    scales:{ y:{ grid, ticks:{callback:v=>v+'%'}, max:22 }, x:{ grid:noGrid } }
+  }
+});
+
+charts.discount = new Chart(document.getElementById('discountScatter'),{
+  type:'bubble',
+  data:{
+    datasets:[
+      { label:'Profitable', backgroundColor:GREEN+'44', borderColor:GREEN, borderWidth:1,
+        data:[{x:0,y:18.5,r:18},{x:.05,y:21,r:9},{x:.1,y:12,r:12},{x:.15,y:9,r:8},{x:.02,y:25,r:7},{x:.12,y:15,r:8},{x:.22,y:7,r:6}] },
+      { label:'Loss-making', backgroundColor:RED+'55', borderColor:RED, borderWidth:1,
+        data:[{x:.2,y:4.5,r:10},{x:.3,y:-2,r:8},{x:.4,y:-8.5,r:7},{x:.5,y:-14,r:6},{x:.6,y:-22,r:5},{x:.7,y:-30,r:4},{x:.35,y:-5,r:5},{x:.25,y:2,r:6}] }
+    ]
+  },
+  options:{
+    aspectRatio:1.6,
+    plugins:{ legend:{labels:{color:TEXT2}}, tooltip:{ ...tip,
+      callbacks:{ label:c=>`Discount: ${(c.raw.x*100).toFixed(0)}% → Margin: ${c.raw.y.toFixed(1)}%` }
+    }},
+    scales:{
+      x:{ grid, title:{display:true,text:'Discount Applied',color:TEXT2}, ticks:{callback:v=>(v*100).toFixed(0)+'%'} },
+      y:{ grid, title:{display:true,text:'Profit Margin %',color:TEXT2}, ticks:{callback:v=>v+'%'} }
+    }
+  }
+});
+
+/* ══════════════════════════════════════════
+   PAGE 3 CHARTS
+══════════════════════════════════════════ */
+charts.regionBar = new Chart(document.getElementById('regionBar'),{
+  type:'bar',
+  data:{
+    labels:['West','East','Central','South'],
+    datasets:[
+      { label:'Sales',  data:[725458,678781,501240,391722],
+        backgroundColor:[BLUE+'CC',GREEN+'CC',GOLD+'CC',PURPLE+'CC'], borderRadius:7 },
+      { label:'Profit', data:[108418,91523,39706,46749],
+        backgroundColor:[BLUE+'44',GREEN+'44',GOLD+'44',PURPLE+'44'], borderRadius:7 }
+    ]
+  },
+  options:{
+    aspectRatio:1.6,
+    plugins:{ legend:{labels:{color:TEXT2}}, tooltip:{ ...tip, callbacks:{ label:c=>' '+c.dataset.label+': '+moneyFmt(c.raw) } } },
+    scales:{ y:{ grid, ticks:{callback:v=>moneyFmt(v)} }, x:{ grid:noGrid } }
+  }
+});
+
+charts.regionMargin = new Chart(document.getElementById('regionMargin'),{
+  type:'bar',
+  data:{
+    labels:['West','East','South','Central'],
+    datasets:[{ data:[14.94,13.48,11.93,7.92],
+      backgroundColor:[BLUE+'CC',GREEN+'CC',PURPLE+'CC',RED+'CC'],
+      borderRadius:8, borderSkipped:false }]
+  },
+  options:{
+    aspectRatio:1.6,
+    plugins:{ legend:{display:false}, tooltip:{ ...tip, callbacks:{ label:c=>' Margin: '+c.raw+'%' } } },
+    scales:{ y:{ grid, ticks:{callback:v=>v+'%'}, max:20 }, x:{ grid:noGrid } }
+  }
+});
+
+// State bars (HTML)
+const states=[
+  {name:'California',   region:'West',    val:457688, color:BLUE},
+  {name:'New York',     region:'East',    val:310876, color:GREEN},
+  {name:'Texas',        region:'Central', val:170188, color:GOLD, warn:true},
+  {name:'Washington',   region:'West',    val:138641, color:BLUE},
+  {name:'Pennsylvania', region:'East',    val:116512, color:GREEN, warn:true},
+];
+const maxV = Math.max(...states.map(s=>s.val));
+const sb = document.getElementById('statesBars');
+states.forEach(s=>{
+  const pct = (s.val/maxV*100).toFixed(1);
+  sb.innerHTML+=`<div class="state-row">
+    <div class="state-meta">
+      <span class="state-name">${s.name}
+        <span style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-left:4px">${s.region}</span>
+        ${s.warn?`<span class="status-pill" style="background:rgba(231,76,60,0.15);color:var(--red);margin-left:6px">loss state</span>`:''}
+      </span>
+      <span class="state-val" style="color:${s.color}">${moneyFmt(s.val)}</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${s.color}"></div></div>
+  </div>`;
+});
+
+/* ══════════════════════════════════════════
+   PAGE 4 CHARTS
+══════════════════════════════════════════ */
+charts.segBar = new Chart(document.getElementById('segBar'),{
+  type:'bar',
+  data:{
+    labels:['Consumer','Corporate','Home Office'],
+    datasets:[
+      { label:'Revenue', data:[1161401,706146,429653],
+        backgroundColor:[BLUE+'CC',GREEN+'CC',PURPLE+'CC'], borderRadius:7 },
+      { label:'Profit',  data:[134119,91979,60299],
+        backgroundColor:[BLUE+'44',GREEN+'44',PURPLE+'44'], borderRadius:7 }
+    ]
+  },
+  options:{
+    aspectRatio:1.6,
+    plugins:{ legend:{labels:{color:TEXT2}}, tooltip:{ ...tip, callbacks:{ label:c=>' '+c.dataset.label+': '+moneyFmt(c.raw) } } },
+    scales:{ y:{ grid, ticks:{callback:v=>moneyFmt(v)} }, x:{ grid:noGrid } }
+  }
+});
+
+charts.segMargin = new Chart(document.getElementById('segMargin'),{
+  type:'doughnut',
+  data:{
+    labels:['Consumer (11.6%)','Corporate (13.0%)','Home Office (14.0%)'],
+    datasets:[{ data:[11.55,13.03,14.03],
+      backgroundColor:[BLUE,GREEN,PURPLE], borderWidth:0, hoverOffset:10 }]
+  },
+  options:{
+    aspectRatio:1.6, cutout:'60%',
+    plugins:{ legend:{position:'bottom',labels:{color:TEXT2,padding:14}},
+      tooltip:{ ...tip, callbacks:{ label:c=>' '+c.label } }
+    }
+  }
+});
+
+/* ══════════════════════════════════════════
+   RESIZE HANDLER — redraw on window resize
+══════════════════════════════════════════ */
+let resizeTimer;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(()=>{
+    Object.values(charts).forEach(c => c && c.resize());
+  }, 120);
+});
+</script>
+</body>
+</html>
